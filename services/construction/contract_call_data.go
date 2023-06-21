@@ -49,6 +49,17 @@ func constructContractCallDataGeneric(methodSig string, methodArgs interface{}) 
 					i, genericVal,
 				)
 			}
+
+			// method args are pre-compiled ABI data. decode the hex and create the call data directly
+			if len(methodArgs) == 1 && i == 0 && strVal[:2] == "0x" {
+				strVal = strings.TrimPrefix(strVal, "0x")
+				b, decErr := hex.DecodeString(strVal)
+				if decErr != nil {
+					return nil, fmt.Errorf("error decoding method args hex data: %w", decErr)
+				}
+				return append(data, b...), nil
+			}
+
 			strList = append(strList, strVal)
 		}
 		return encodeMethodArgsStrings(data, methodSig, strList)
